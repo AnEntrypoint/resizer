@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Resizer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .card h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.3em;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 0.95em;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .button-group button {
+      flex: 1;
+    }
+
+    .preview-section {
+      margin-top: 20px;
+    }
+
+    .preview-label {
+      color: #666;
+      font-weight: 500;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .preview-item {
+      border: 2px solid #eee;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f9f9f9;
+    }
+
+    .preview-item h4 {
+      background: #f0f0f0;
+      padding: 10px;
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    .preview-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #fff;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .file-input-label {
+      display: block;
+      padding: 20px;
+      background: #f5f5f5;
+      border: 2px dashed #ddd;
+      border-radius: 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .file-input-label:hover {
+      border-color: #667eea;
+      background: #f0f2ff;
+    }
+
+    .file-input-label.has-file {
+      border-style: solid;
+      background: #f0fff4;
+      border-color: #10b981;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-name {
+      color: #667eea;
+      font-weight: 600;
+      margin-top: 5px;
+      font-size: 0.9em;
+    }
+
+    .status {
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 15px;
+      display: none;
+    }
+
+    .status.show {
+      display: block;
+    }
+
+    .status.success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+
+    .status.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .status.loading {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #93c5fd;
+    }
+
+    .algorithm-badges {
+      display: flex;
+      gap: 8px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 8px 16px;
+      background: #e5e7eb;
+      border: 1px solid #d1d5db;
+      border-radius: 20px;
+      font-size: 0.85em;
+      color: #374151;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .badge:hover {
+      background: #d1d5db;
+    }
+
+    .badge.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    @media (max-width: 768px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 1.8em;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .stats {
+      background: #f9fafb;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.85em;
+      color: #666;
+      margin-top: 10px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    .stat-row:last-child {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Image Resizer</h1>
+      <p class="subtitle">High-quality image resizing with multiple algorithms</p>
+    </header>
+
+    <div class="main-grid">
+      <div class="card">
+        <h2>Upload Image</h2>
+        <form id="uploadForm" enctype="multipart/form-data">
+          <div class="form-group">
+            <label>Select Image</label>
+            <div class="file-input-wrapper">
+              <label class="file-input-label" id="fileLabel" for="imageFile">
+                <div style="font-size: 2em; margin-bottom: 10px;">📁</div>
+                <div>Click to select or drag & drop</div>
+                <div class="file-name" id="fileName" style="display: none;"></div>
+              </label>
+              <input type="file" id="imageFile" class="file-input" accept="image/*">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Resize Method</label>
+            <select id="fitMode">
+              <option value="cover">Cover (crop to fill)</option>
+              <option value="contain">Contain (letterbox)</option>
+              <option value="fill">Fill (stretch)</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Width (px)</label>
+              <input type="number" id="width" placeholder="e.g., 400" min="1">
+            </div>
+            <div class="form-group">
+              <label>Height (px)</label>
+              <input type="number" id="height" placeholder="e.g., 300" min="1">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Scale Factor</label>
+            <input type="number" id="scale" placeholder="e.g., 0.5" min="0.1" max="10" step="0.1">
+          </div>
+
+          <div class="form-group">
+            <label>Aspect Ratio (width/height)</label>
+            <input type="number" id="aspectRatio" placeholder="e.g., 16/9 = 1.778" min="0.1" step="0.01">
+          </div>
+
+          <div class="form-group">
+            <label>Algorithm</label>
+            <select id="algorithm">
+              <option value="lanczos" selected>Lanczos (highest quality)</option>
+              <option value="bicubic">Bicubic (high quality)</option>
+              <option value="bilinear">Bilinear (balanced)</option>
+              <option value="nearest">Nearest neighbor (fast)</option>
+            </select>
+          </div>
+
+          <button type="submit" style="width: 100%;">Resize Image</button>
+
+          <div class="status" id="status"></div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Preview</h2>
+        <div id="previewContainer">
+          <div style="text-align: center; color: #999; padding: 40px 20px;">
+            Upload an image to see preview
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Test Different Algorithms</h2>
+      <div id="algorithmTestContainer" style="text-align: center; color: #999; padding: 20px;">
+        Upload an image and select dimensions, then click "Compare All Algorithms" to test quality
+      </div>
+      <button id="compareButton" type="button" style="width: 100%; margin-top: 15px; display: none;">
+        Compare All Algorithms
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      selectedFile: null,
+      previewUrl: null
+    };
+
+    const elements = {
+      form: document.getElementById('uploadForm'),
+      fileInput: document.getElementById('imageFile'),
+      fileLabel: document.getElementById('fileLabel'),
+      fileName: document.getElementById('fileName'),
+      width: document.getElementById('width'),
+      height: document.getElementById('height'),
+      scale: document.getElementById('scale'),
+      aspectRatio: document.getElementById('aspectRatio'),
+      algorithm: document.getElementById('algorithm'),
+      fitMode: document.getElementById('fitMode'),
+      status: document.getElementById('status'),
+      previewContainer: document.getElementById('previewContainer'),
+      compareButton: document.getElementById('compareButton'),
+      algorithmTestContainer: document.getElementById('algorithmTestContainer')
+    };
+
+    elements.fileInput.addEventListener('change', handleFileSelect);
+    elements.fileLabel.addEventListener('dragover', handleDragOver);
+    elements.fileLabel.addEventListener('dragleave', handleDragLeave);
+    elements.fileLabel.addEventListener('drop', handleDrop);
+    elements.form.addEventListener('submit', handleResize);
+    elements.compareButton.addEventListener('click', compareAlgorithms);
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        state.selectedFile = file;
+        state.previewUrl = URL.createObjectURL(file);
+        updateFileLabel();
+        showPreview(state.previewUrl, 'Original');
+        elements.compareButton.style.display = 'block';
+      }
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      elements.fileLabel.style.borderColor = '#667eea';
+      elements.fileLabel.style.background = '#f0f2ff';
+    }
+
+    function handleDragLeave(e) {
+      elements.fileLabel.style.borderColor = '#ddd';
+      elements.fileLabel.style.background = '#f5f5f5';
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      elements.fileLabel.style.borderColor = '#ddd';
+      elements.fileLabel.style.background = '#f5f5f5';
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        elements.fileInput.files = e.dataTransfer.files;
+        handleFileSelect({ target: elements.fileInput });
+      }
+    }
+
+    function updateFileLabel() {
+      if (state.selectedFile) {
+        elements.fileLabel.classList.add('has-file');
+        elements.fileName.textContent = state.selectedFile.name;
+        elements.fileName.style.display = 'block';
+      } else {
+        elements.fileLabel.classList.remove('has-file');
+        elements.fileName.style.display = 'none';
+      }
+    }
+
+    function showPreview(src, label) {
+      const html = `
+        <div class="preview-item">
+          <h4>${label}</h4>
+          <img src="${src}" alt="Preview">
+        </div>
+      `;
+      elements.previewContainer.innerHTML = html;
+    }
+
+    async function handleResize(e) {
+      e.preventDefault();
+
+      if (!state.selectedFile) {
+        showStatus('Please select an image first', 'error');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image', state.selectedFile);
+
+      const params = new URLSearchParams();
+      if (elements.width.value) params.append('width', elements.width.value);
+      if (elements.height.value) params.append('height', elements.height.value);
+      if (elements.scale.value) params.append('scale', elements.scale.value);
+      if (elements.aspectRatio.value) params.append('aspectRatio', elements.aspectRatio.value);
+      params.append('fit', elements.fitMode.value);
+      params.append('algorithm', elements.algorithm.value);
+
+      showStatus('Resizing... <span class="spinner"></span>', 'loading');
+
+      try {
+        const response = await fetch(`/resize?${params}`, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.messages?.join(', ') || error.message);
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const width = response.headers.get('X-Resized-Width');
+        const height = response.headers.get('X-Resized-Height');
+        const algo = response.headers.get('X-Algorithm');
+
+        showPreview(url, `Resized (${width}×${height}, ${algo})`);
+        showStatus(`Resized successfully: ${width}×${height}px using ${algo}`, 'success');
+      } catch (error) {
+        showStatus(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function compareAlgorithms() {
+      if (!state.selectedFile || !elements.width.value) {
+        showStatus('Please select an image and specify width', 'error');
+        return;
+      }
+
+      const algorithms = ['nearest', 'bilinear', 'bicubic', 'lanczos'];
+      const results = [];
+
+      elements.compareButton.disabled = true;
+      elements.algorithmTestContainer.innerHTML = '<p>Testing algorithms...</p>';
+
+      for (const algo of algorithms) {
+        try {
+          const formData = new FormData();
+          formData.append('image', state.selectedFile);
+
+          const params = new URLSearchParams();
+          params.append('width', elements.width.value);
+          if (elements.height.value) params.append('height', elements.height.value);
+          params.append('algorithm', algo);
+          params.append('fit', elements.fitMode.value);
+
+          const response = await fetch(`/resize?${params}`, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.ok) {
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            results.push({ algo, url });
+          }
+        } catch (error) {
+          console.error(`Algorithm ${algo} failed:`, error);
+        }
+      }
+
+      let html = '<div class="preview-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">';
+      for (const { algo, url } of results) {
+        html += `
+          <div class="preview-item">
+            <h4>${algo.charAt(0).toUpperCase() + algo.slice(1)}</h4>
+            <img src="${url}" alt="${algo}">
+          </div>
+        `;
+      }
+      html += '</div>';
+
+      elements.algorithmTestContainer.innerHTML = html;
+      elements.compareButton.disabled = false;
+    }
+
+    function showStatus(message, type) {
+      elements.status.innerHTML = message;
+      elements.status.className = `status show ${type}`;
+      if (type !== 'loading') {
+        setTimeout(() => {
+          elements.status.classList.remove('show');
+        }, 5000);
+      }
+    }
+  </script>
+</body>
+</html>
