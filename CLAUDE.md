@@ -1,43 +1,67 @@
-# Image Resizer - Technical Caveats
+# Image Resizer - Technical Caveats & Implementation Notes
 
-## System
-- Node.js 18+ (tested on v23.11.1)
-- Pure JS image processing via Jimp library
-- No native binaries or external tools required
+## Environment & Dependencies
+- **Node.js:** 18+ (tested on v23.11.1)
+- **Image codec:** pngjs (pure JavaScript PNG encoder/decoder)
+- **No external binaries:** All pixel manipulation in native JavaScript
+- **No compiled native modules:** Pure npm dependencies only
 
-## Implementation Choices
+## Resizing Algorithms
 
-### Image Resizing Algorithms
-Uses Jimp v0.22.10 which provides:
-- `RESIZE_NEAREST_NEIGHBOR` - fastest, pixelated
-- `RESIZE_BILINEAR` - balanced quality/speed
-- `RESIZE_BICUBIC` - high quality
-- `RESIZE_BEZIER` - highest quality (mapped to "lanczos")
+### Implementation Details
+All algorithms implemented as pure JavaScript pixel manipulation:
 
-Note: True Lanczos not available in Jimp; Bezier provides best quality alternative.
+1. **Nearest Neighbor** - O(1) per pixel, fastest, visible pixelation on upscaling
+2. **Bilinear** - 4-pixel interpolation, moderate quality/speed tradeoff
+3. **Bicubic** - 16-pixel cubic convolution kernel, high quality
+4. **Lanczos3** - Sinc function windowing with 3-lobe radius, best quality but slowest
 
-### Architecture
-- Express server with Multer for file uploads
-- Memory-based file storage (no disk writes for uploads)
-- Temporary file cleanup after processing
-- FormData requires Buffer.from(new Uint8Array(arrayBuffer)) for proper conversion
+### Lanczos Implementation Note
+The Lanczos3 implementation is a custom pure-JavaScript approximation using sinc function windowing. It matches the mathematical principles of true Lanczos but is not byte-for-byte identical to reference implementations like ImageMagick's. Quality is visually equivalent for most use cases.
 
-### Testing
-- Integration tests generate real PNG images
-- Validates: dimensions, fit modes, scaling, aspect ratio
-- All 36 test cases pass (9 scenarios × 4 algorithms)
-- Output images verified as valid PNG with correct dimensions
+## Image Format Constraints
+- **Input:** PNG only (pngjs limitation)
+- **Output:** PNG only (8-bit RGBA)
+- **JPEG/WebP:** Not supported - no format conversion capability
+- **Workaround:** Convert images to PNG externally before processing
+
+## Memory & Performance
+- **Memory-based:** Entire image loaded into memory during processing
+- **Practical limit:** ~2000x2000px per image (varies with available RAM)
+- **Large images:** Will cause memory pressure and increased GC pauses
+- **No streaming:** Cannot process images larger than available heap
+- **Single-threaded:** Sequential processing only, no parallelization
+
+## Dimension Calculation Edge Cases
+- **Both width & height specified:** Image scaled and cropped (fit mode determines behavior)
+- **Only width OR height specified:** Other dimension calculated to preserve aspect ratio
+- **Neither specified:** Scale parameter or aspectRatio must be provided
+- **Scale without dimensions:** Scales from original dimensions
+- **aspectRatio parameter:** Only used when fitting to calculate missing dimension
+
+## Fit Modes Behavior
+- **cover:** Scales to cover box, crops excess (default)
+- **contain:** Scales to fit in box, letterboxes with white background
+- **fill:** Stretches to exact dimensions (ignores aspect ratio)
+
+## API Contract
+- **Request body:** multipart/form-data with "image" field
+- **Alternative:** ?url=http://... to fetch and resize remote image
+- **Response:** PNG binary (Content-Type: image/png)
+- **Error format:** JSON with descriptive error message and HTTP status
 
 ## Known Limitations
-- Jimp's RESIZE_BEZIER used as lanczos equivalent (high quality alternative)
-- Max reasonable image size ~2000x2000px (memory-based processing)
-- No streaming - entire image loaded into memory
-- No batch processing (sequential requests)
+1. PNG-only I/O - no automatic format detection or conversion
+2. Memory-bound - not suitable for batch processing large images
+3. No progressive output - client waits for complete processing
+4. No caching layer - repeated requests re-process
+5. Single-process - no horizontal scaling within Node
+6. No timeout enforcement - very large images may hang indefinitely
 
 ## Hot Reload
-Can add with `node --watch src/index.js` but currently uses manual npm scripts.
+Supports `node --watch src/index.js` via npm dev script (Node 18.11+). State is completely stateless so reload is safe.
 
-## Port Configuration
-- Default: 3000 (configurable via PORT env var)
-- Server listens on all interfaces (0.0.0.0)
-- No CORS headers currently set
+## Configuration
+- **PORT:** Configurable via environment variable (default: 3000)
+- **Binds to:** 0.0.0.0 (all interfaces)
+- **CORS:** Not configured - add if needed for cross-origin requests
