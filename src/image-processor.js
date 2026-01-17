@@ -74,9 +74,11 @@ class ImageProcessor {
     if (!targetWidth) targetWidth = srcWidth;
     if (!targetHeight) targetHeight = srcHeight;
 
-    if (fit === 'cover') {
+    const hasBothDimensions = width && height;
+
+    if (hasBothDimensions && fit === 'cover') {
       return this.fitCover(srcWidth, srcHeight, targetWidth, targetHeight);
-    } else if (fit === 'contain') {
+    } else if (hasBothDimensions && fit === 'contain') {
       return this.fitContain(srcWidth, srcHeight, targetWidth, targetHeight);
     } else if (fit === 'fill') {
       return { width: targetWidth, height: targetHeight };
